@@ -16,7 +16,7 @@
 
 int fd;  // seen by all subroutines
 
-void print_on_display (float ti, float te, int temp){
+void print_on_display (float ti, float tr, int temp){
     if (wiringPiSetup() ==-1){
         printf("Erro no LCD\n");
         exit(1);
@@ -28,10 +28,10 @@ void print_on_display (float ti, float te, int temp){
     lcdLoc(0x80);
     typeln("TI:");
     typeFloat(ti);
-    typeln(" TE:");
-    typeFloat(te);
+    typeln(" TR:");
+    typeFloat(tr);
     lcdLoc(0xC0);
-    typeln("TEMP:");
+    typeln("TIMER:");
     typeInt(temp);
 }
 

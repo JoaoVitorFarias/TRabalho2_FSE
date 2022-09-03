@@ -1,10 +1,10 @@
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#ifndef CONTROL_LCD_H_
+#define CONTROL_LCD_H_
 
 #include <wiringPiI2C.h>
-#include <wiringPi.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <wiringPi.h>
+#include <softPwm.h>
 
 // Define some device parameters
 #define I2C_ADDR   0x27 // I2C device address
@@ -34,6 +34,6 @@ void typeln(const char *s);
 void typeChar(char val);
 
 
-void print_on_display (float ti, float te, float temp);
+void print_on_display (float ti, float tr, int temp);
 
-#endif
+#endif /* CONTROL_LCD_H_ */

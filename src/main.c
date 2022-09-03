@@ -11,7 +11,7 @@ const struct MenuDefined frango = {10, 40.0};
 const struct MenuDefined peixe = {6, 40.0};
 const struct MenuDefined carne = {10, 45.0};
 const struct MenuDefined legumes = {4, 35.0};
-const struct FMenuDefinedoo pao = {3, 35.0};
+const struct MenuDefined pao = {3, 35.0};
 
 struct bme280_dev bme280;
 int uart_filestream, uart_resp = 0, uart_on_off = 0, uart_start = 0, temp = 60, menu_defined = 0, count_time = 0, uart_resp_time = 0;
@@ -56,7 +56,7 @@ void set_up(){
 
     send_uart_bool(uart_filestream, 0, 0xD3);
 
-    FILE* reflow = fopen("curva_reflow.csv", "r");
+    FILE* reflow = fopen("log.csv", "r");
     int count = 0;
 
     if(!reflow){
@@ -117,7 +117,7 @@ void start(){
             handle_menu();
             uart_resp = 0;
         }
-    }while(uart_resp != 3)
+    }while(uart_resp != 3);
 
     send_uart_bool(uart_filestream, 1, 0xD5);
 }
@@ -135,6 +135,7 @@ void reset(){
     tr = 0;  
     pid = 0;
     start_time = false;
+    is_finished = false;
 }
 
 void end(){
@@ -237,7 +238,7 @@ void define_info(){
                 printf("\n\n\nInforme a TR (Temperatura de Referencia):\n");
                 scanf("%f", &tr_aux);
                 printf("\n\n\nInforme o tempo (em minutos):\n");
-                scanf("%d", &tempo);
+                scanf("%d", &temp_aux);
 
                 temp = temp_aux * 60;
                 tr = tr_aux;
@@ -246,7 +247,7 @@ void define_info(){
                 break;
 
             case 2:
-                pre_defined()
+                pre_defined();
                 scanf("%d", &opt2);
                 
                 if(opt2 > 0 && opt2 < 6){
@@ -255,7 +256,7 @@ void define_info(){
                 }
 
                 if(opt2 > 6){
-                    printf("\nOpcao Invalida!\n")
+                    printf("\nOpcao Invalida!\n");
                 }
                 break;
 
@@ -318,7 +319,9 @@ void time_control(){
 void temperature_control(){
 
     tr = request_uart_temp(uart_filestream, 0xC2);
+    sleep(0.5);
     ti = request_uart_temp(uart_filestream, 0xC1);
+    sleep(0.5);
     te = request_temp(&bme280);
 
     if(ti >= tr){
@@ -348,10 +351,10 @@ void temperature_control(){
         }
     }
 
-    send_uart_int(uart_filestream, pid);
+    send_uart_int(uart_filestream, 0xD1, pid);
 
     add_in_csv(ti, te, tr, pid);
-    print_on_display (ti, te, temp);
+    print_on_display (ti, tr, (temp/60));
 }
 
 
