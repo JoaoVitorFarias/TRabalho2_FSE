@@ -33,6 +33,7 @@ void print_on_display (float ti, float tr, int temp){
     lcdLoc(0xC0);
     typeln("TIMER:");
     typeInt(temp);
+    typeln("min");
 }
 
 void print_msg_on_display (char* msg){

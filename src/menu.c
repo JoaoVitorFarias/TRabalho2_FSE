@@ -2,7 +2,7 @@
 
 void secondary_menu(){
     printf("\n\n\n===== MENU =====\n\n");
-    printf("Escolha uma opcao:\n\t1-Definir manualmente temperatura e tempo \n\t2-Selecionar pre-definicao\n\t3-Voltar\n");
+    printf("Escolha uma opcao:\n\t1-Definir manualmente temperatura e tempo \n\t2-Selecionar pre-definicao\n");
 }
 
 void pre_defined(){
