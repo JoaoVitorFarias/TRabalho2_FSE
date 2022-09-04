@@ -34,6 +34,7 @@ void typeln(const char *s);
 void typeChar(char val);
 
 
-void print_on_display (float ti, float tr, int temp);
+void print_on_display (float ti, float te, int temp);
+void print_msg_on_display (char* msg);
 
 #endif /* CONTROL_LCD_H_ */

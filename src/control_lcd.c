@@ -35,6 +35,18 @@ void print_on_display (float ti, float tr, int temp){
     typeInt(temp);
 }
 
+void print_msg_on_display (char* msg){
+    if (wiringPiSetup() ==-1){
+        printf("Erro no LCD\n");
+        exit(1);
+    }
+
+    fd = wiringPiI2CSetup(I2C_ADDR);
+
+    ClrLcd();
+    lcdLoc(0x80);
+    typeln(msg);
+}
 
 // float to string
 void typeFloat(float myFloat)   {

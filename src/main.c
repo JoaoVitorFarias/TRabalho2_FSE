@@ -14,12 +14,12 @@ const struct MenuDefined legumes = {4, 35.0};
 const struct MenuDefined pao = {3, 35.0};
 
 struct bme280_dev bme280;
-int uart_filestream, uart_resp = 0, uart_on_off = 0, uart_start = 0, temp = 60, menu_defined = 0, count_time = 0, uart_resp_time = 0;
+int uart_filestream, uart_resp = 0, uart_on_off = 0, temp = 60, menu_defined = 0, count_time = 0, uart_resp_time = 0;
 float ti = 0, te = 0, tr = 0;  
 int temp_array [10];
 int second_array [10];
 double pid = 0;
-bool start_time = false, is_finished = false;
+bool start_time = false, is_finished = false, in_terminal = false;
 
 int main() {
     set_up();
@@ -30,6 +30,7 @@ int main() {
     }while (uart_on_off != 1);
 
     send_uart_bool(uart_filestream, 1, 0xD3);
+    print_msg_on_display("Iniciando...");
 
     start();
 
@@ -90,7 +91,6 @@ void start(){
     do{
 
         tr = request_uart_temp(uart_filestream, 0xC2);
-        sleep(0.5);
 
         uart_resp = request_uart_user(uart_filestream);
 
@@ -126,7 +126,6 @@ void reset(){
     uart_resp = 0;
     uart_resp_time = 0;
     uart_on_off = 0;
-    uart_start = 0;
     temp = 60;
     menu_defined = 0;
     count_time = 0;
@@ -136,9 +135,11 @@ void reset(){
     pid = 0;
     start_time = false;
     is_finished = false;
+    in_terminal = false;
 }
 
 void end(){
+    print_msg_on_display("Desligando...");
     send_uart_bool(uart_filestream, 0, 0xD3);
     close_uart(uart_filestream);
     fan_off();
@@ -147,29 +148,9 @@ void end(){
 }
 
 void *menu(){
-    int opt = 0;
-
-    while(1){
-
-        main_menu();
-        scanf("%d", &opt);
-
-        switch (opt) {
-        case 1:
-            printf("===== MONITORAMENTO =====\n");
-            printf("Para sair aperte 1");
-            monitoring();
-            break;
-
-        case 2:
-            define_info();
-            break;
-
-        default:
-            printf("Opcao Invalida!\n");
-            break;;
-        }
-
+    
+    do{
+        define_info();
     }while (!is_finished);
     
 }
@@ -179,30 +160,35 @@ void handle_menu() {
     switch (menu_defined)
     {
     case 1:
+        print_msg_on_display("Frango");
         temp = frango.time * 60;
         tr = frango.tr;
         send_uart_int(uart_filestream, 0xD6, (temp/60));
         send_uart_float(uart_filestream, tr);
         break;
     case 2:
+        print_msg_on_display("Peixe");
         temp = peixe.time * 60;
         tr = peixe.tr;
         send_uart_int(uart_filestream, 0xD6, (temp/60));
         send_uart_float(uart_filestream, tr);
         break;
     case 3:
+        print_msg_on_display("Carne");
         temp = carne.time * 60;
         tr = carne.tr;
         send_uart_int(uart_filestream, 0xD6, (temp/60));
         send_uart_float(uart_filestream, tr);
         break;
     case 4:
+        print_msg_on_display("Legumes");
         temp = legumes.time * 60;
         tr = legumes.tr;
         send_uart_int(uart_filestream, 0xD6, (temp/60));
         send_uart_float(uart_filestream, tr);
         break;
     case 5:
+        print_msg_on_display("Pao");
         temp = pao.time * 60;
         tr = pao.tr;
         send_uart_int(uart_filestream, 0xD6, (temp/60));
@@ -214,17 +200,6 @@ void handle_menu() {
     }
 }
 
-void monitoring(){
-    int exit_monitoring = 0;
-    do{
-        printf("TR: %f°C", tr);
-        printf("TI: %f°C", ti);
-        printf("Tempo: %d minutos", (temp/60));
-        
-        sleep(1);
-    }while(scanf("%d", &exit_monitoring) != 1);    
-}
-
 void define_info(){
     int opt = 0, opt2 = 0, temp_aux = 0;
     float tr_aux = 0;
@@ -232,6 +207,7 @@ void define_info(){
     do{
         secondary_menu();
         scanf("%d", &opt);
+        send_uart_bool(uart_filestream, 1, 0xD4);
 
         switch (opt) {
             case 1:
@@ -289,18 +265,14 @@ void time_control(){
     
     do{
         temperature_control(); 
-        handle_time();
-        sleep(0.5);
-
-        temperature_control(); 
-        handle_time();
-        sleep(0.5); 
-
+        
         if(start_time == true){
+            printf("ola");
             count_time++;
         }
 
         if(count_time == 60 && temp > 60){
+            printf("ola2");
             temp = temp - 60;
             count_time = 0;
         }
@@ -318,13 +290,29 @@ void time_control(){
 
 void temperature_control(){
 
-    tr = request_uart_temp(uart_filestream, 0xC2);
+    uart_resp_time = request_uart_user(uart_filestream);
+    sleep(0.5);
+    if (!in_terminal){
+        tr = request_uart_temp(uart_filestream, 0xC2);
+    }
     sleep(0.5);
     ti = request_uart_temp(uart_filestream, 0xC1);
-    sleep(0.5);
     te = request_temp(&bme280);
 
-    if(ti >= tr){
+    if (uart_resp_time == 5){
+        temp = temp + 60;
+        send_uart_int(uart_filestream, 0xD6, (temp/60));
+        uart_resp_time = 0;
+    }
+
+    if(uart_resp_time == 6 && temp > 60){
+        temp = temp - 60;
+        send_uart_int(uart_filestream, 0xD6, (temp/60));
+        uart_resp_time = 0;
+    }
+
+    if(ti == tr){
+        printf("ola3");
         start_time = true;
     }
 
@@ -355,21 +343,4 @@ void temperature_control(){
 
     add_in_csv(ti, te, tr, pid);
     print_on_display (ti, tr, (temp/60));
-}
-
-
-void handle_time(){
-    uart_resp_time = request_uart_user(uart_filestream);
-
-    if (uart_resp_time == 5){
-        temp = temp + 60;
-        send_uart_int(uart_filestream, 0xD6, (temp/60));
-        uart_resp_time = 0;
-    }
-
-    if(uart_resp_time == 6 && temp > 60){
-        temp = temp - 60;
-        send_uart_int(uart_filestream, 0xD6, (temp/60));
-        uart_resp_time = 0;
-    }
 }

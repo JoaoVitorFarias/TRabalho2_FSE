@@ -30,7 +30,6 @@ void monitoring();
 void define_info();      
 void *control();
 void time_control();
-void handle_time();
 void temperature_control();
 
 #endif /* MAIN_H_ */
