@@ -279,11 +279,6 @@ void time_control(){
             break;
         }
 
-        if(temp<=0)
-        {
-            break;
-        }
-
     }while(temp>0);
 
     print_msg_on_display("Pronto!");
